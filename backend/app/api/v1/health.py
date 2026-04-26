@@ -7,6 +7,6 @@ def healt_check():
     """Health check endpoint."""
 
     return {
-        status: "ok",
+        "status": "ok",
         "message": "RAGify API is running"
     }
