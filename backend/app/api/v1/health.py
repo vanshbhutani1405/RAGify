@@ -3,7 +3,7 @@ from fastapi import APIRouter
 router = APIRouter()
 
 @router.get("/health")
-def healt_check():
+def health_check():
     """Health check endpoint."""
 
     return {
