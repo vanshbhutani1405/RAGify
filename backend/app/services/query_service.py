@@ -1,3 +1,5 @@
+from fastapi import HTTPException
+
 from langchain.chains import (
     create_retrieval_chain
 )
@@ -60,7 +62,10 @@ class QueryService:
 
         if vector_store is None:
 
-            yield "No document uploaded yet."
+            raise HTTPException(
+            status_code=400,
+            detail="No documents uploaded yet."
+             )
 
             return
 
