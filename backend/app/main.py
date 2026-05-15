@@ -6,6 +6,7 @@ from app.core.logging import setup_logging
 from app.utils.logging_utils import log_startup
 from app.api.v1.upload import router as upload_router
 from app.api.v1.query import router as query_router
+from app.api.v1.clear import router as clear_router
 from app.services.document_service import DocumentService
 
 from fastapi.middleware.cors import (
@@ -40,6 +41,10 @@ def create_app() -> FastAPI:
     )
     app.include_router(
     query_router,
+    prefix=settings.API_PREFIX
+    )
+    app.include_router(
+    clear_router,
     prefix=settings.API_PREFIX
     )
     

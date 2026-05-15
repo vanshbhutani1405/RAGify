@@ -6,29 +6,30 @@ import { Sidebar } from "@/components/app/Sidebar";
 import { UploadArea } from "@/components/app/UploadArea";
 import { ChatInterface } from "@/components/app/ChatInterface";
 import { FileText, ArrowLeft } from "lucide-react";
+import { clearCustomDocuments } from "@/lib/api";
 
 const demoFileNames: Record<string, string[]> = {
-  financial: ["Financial_Report_2024.pdf", "Market_Analysis.pdf"],
-  legal: ["Legal_Agreement.pdf", "Compliance_Policy.pdf"],
+  financial: ["Ragify Financial Rag Sample Document.pdf"],
+  legal: ["Ragify Indian Legal Rag Sample Document.pdf"],
 };
 
 export default function AppPage() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeChat, setActiveChat] = useState<string | null>(null);
-  const [currentDemo, setCurrentDemo] = useState<string | null>(null);
+  const [currentRagType, setCurrentRagType] = useState<string>("custom");
 
   const handleUploadComplete = async (files: File[]) => {
-    setIsProcessing(true);
     setUploadedFiles(files);
-    setCurrentDemo(null);
+    setCurrentRagType("custom");
+    setIsProcessing(false);
   };
 
   const handleDemoSelect = async (demoType: "financial" | "legal") => {
     setIsProcessing(true);
-    setCurrentDemo(demoType);
+    setCurrentRagType(demoType);
     
-    await new Promise(resolve => setTimeout(resolve, 4000));
+    await new Promise(resolve => setTimeout(resolve, 2500));
     
     const dummyFiles = demoFileNames[demoType].map(
       (name) => new File([], name, { type: "application/pdf" })
@@ -41,7 +42,20 @@ export default function AppPage() {
     setActiveChat(null);
   };
 
-  const displayNames = currentDemo ? demoFileNames[currentDemo] : uploadedFiles.map(f => f.name);
+  const handleClear = async () => {
+    if (currentRagType === "custom") {
+      try {
+        await clearCustomDocuments();
+      } catch (e) {
+        console.error("Failed to clear custom documents:", e);
+      }
+    }
+    setUploadedFiles([]);
+    setCurrentRagType("custom");
+  };
+
+  const hasDocuments = (uploadedFiles.length > 0 || currentRagType !== "custom") && !isProcessing;
+  const displayNames = currentRagType !== "custom" ? demoFileNames[currentRagType] : uploadedFiles.map(f => f.name);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -53,12 +67,12 @@ export default function AppPage() {
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Home</span>
             </Link>
-            {((uploadedFiles.length > 0 || currentDemo) && !isProcessing) && (
+            {hasDocuments && (
               <div className="flex items-center space-x-4">
                 <FileText className="w-5 h-5 text-primary" />
                 <div>
                   <p className="font-medium">
-                    {currentDemo ? `${currentDemo.charAt(0).toUpperCase() + currentDemo.slice(1)} RAG` : 
+                    {currentRagType !== "custom" ? `${currentRagType.charAt(0).toUpperCase() + currentRagType.slice(1)} RAG` : 
                     `${displayNames.length} document${displayNames.length > 1 ? "s" : ""} uploaded`}
                   </p>
                   <p className="text-sm text-muted-foreground truncate max-w-xs">
@@ -66,10 +80,7 @@ export default function AppPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => {
-                    setUploadedFiles([]);
-                    setCurrentDemo(null);
-                  }}
+                  onClick={handleClear}
                   className="text-muted-foreground hover:text-foreground text-sm"
                 >
                   Clear
@@ -89,7 +100,8 @@ export default function AppPage() {
           </div>
           <div className="flex-1 overflow-hidden">
             <ChatInterface 
-              hasDocuments={(uploadedFiles.length > 0 || !!currentDemo) && !isProcessing} 
+              hasDocuments={hasDocuments} 
+              ragType={currentRagType}
             />
           </div>
         </div>

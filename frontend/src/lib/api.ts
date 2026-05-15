@@ -2,19 +2,24 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface UploadResponse {
   message: string;
-  filenames: string[];
+  filenames?: string[];
+  total_files?: number;
+  total_pages?: number;
+  total_chunks?: number;
 }
 
 export interface QueryRequest {
   question: string;
   session_id?: string;
+  rag_type?: string;
 }
 
-export async function uploadDocuments(files: File[]): Promise<UploadResponse> {
+export async function uploadDocuments(files: File[], ragType: string = "custom"): Promise<UploadResponse> {
   const formData = new FormData();
   files.forEach((file) => {
     formData.append("files", file);
   });
+  formData.append("rag_type", ragType);
 
   const response = await fetch(`${API_BASE_URL}/api/v1/upload`, {
     method: "POST",
@@ -29,13 +34,13 @@ export async function uploadDocuments(files: File[]): Promise<UploadResponse> {
   return response.json();
 }
 
-export async function* streamQuery(question: string, sessionId: string = "default"): AsyncGenerator<string> {
+export async function* streamQuery(question: string, sessionId: string = "default", ragType: string = "custom"): AsyncGenerator<string> {
   const response = await fetch(`${API_BASE_URL}/api/v1/query`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ question, session_id: sessionId } as QueryRequest),
+    body: JSON.stringify({ question, session_id: sessionId, rag_type: ragType } as QueryRequest),
   });
 
   if (!response.ok) {
@@ -57,5 +62,16 @@ export async function* streamQuery(question: string, sessionId: string = "defaul
     if (value) {
       yield decoder.decode(value, { stream: true });
     }
+  }
+}
+
+export async function clearCustomDocuments(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/clear-custom`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ detail: "Clear failed" }));
+    throw new Error(errorData.detail || `Clear failed: ${response.statusText}`);
   }
 }

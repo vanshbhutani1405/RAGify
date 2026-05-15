@@ -2,10 +2,9 @@ from pydantic import BaseModel
 
 
 class QueryRequest(BaseModel):
-    """
-    Request model for query endpoint.
-    """
 
-    question: str
+    question:str
 
-    session_id: str = "default"
+    session_id:str="default"
+
+    rag_type:str="custom"

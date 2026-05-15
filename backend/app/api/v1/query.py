@@ -21,9 +21,10 @@ async def query_document(
 ):
 
     return StreamingResponse(
-        QueryService.stream_answer(
-            request.question,
-            request.session_id
-        ),
-        media_type="text/plain"
-    )
+    QueryService.stream_answer(
+        request.question,
+        request.session_id,
+        request.rag_type
+    ),
+    media_type="text/plain"
+  )

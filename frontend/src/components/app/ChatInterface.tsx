@@ -15,6 +15,7 @@ interface Message {
 
 interface ChatInterfaceProps {
   hasDocuments: boolean;
+  ragType?: string;
 }
 
 const suggestedQuestions = [
@@ -25,7 +26,7 @@ const suggestedQuestions = [
   "Generate action items",
 ];
 
-export const ChatInterface = ({ hasDocuments }: ChatInterfaceProps) => {
+export const ChatInterface = ({ hasDocuments, ragType = "custom" }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -62,7 +63,7 @@ export const ChatInterface = ({ hasDocuments }: ChatInterfaceProps) => {
 
     try {
       let accumulatedContent = "";
-      for await (const chunk of streamQuery(input)) {
+      for await (const chunk of streamQuery(input, "default", ragType)) {
         accumulatedContent += chunk;
         setMessages((prev) =>
           prev.map((msg) =>

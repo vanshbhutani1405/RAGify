@@ -49,16 +49,24 @@ class QueryService:
         return QueryService.store[
             session_id
         ]
+    
+    @staticmethod
+    def clear_session(
+        session_id: str
+    ):
+        if session_id in QueryService.store:
+            del QueryService.store[session_id]
 
     @staticmethod
     async def stream_answer(
-        question: str,
-        session_id: str
+    question: str,
+    session_id: str,
+    rag_type: str
     ):
 
-        vector_store = (
-            DocumentService.vector_store
-        )
+        vector_store = DocumentService.vector_stores.get(
+                    rag_type
+                )
 
         if vector_store is None:
 
@@ -106,7 +114,7 @@ class QueryService:
                 },
                 config={
                     "configurable": {
-                        "session_id": session_id
+                        "session_id": f"{rag_type}_{session_id}"
                     }
                 }
             )

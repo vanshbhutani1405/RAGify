@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import (
     APIRouter,
     UploadFile,
     File,
+    Form,
     HTTPException
 )
 
@@ -23,7 +24,8 @@ router = APIRouter()
     response_model=UploadResponse
 )
 async def upload_documents(
-    files: List[UploadFile] = File(...)
+    files: List[UploadFile] = File(...),
+    rag_type: Optional[str] = Form("custom")
 ):
 
     if not files:
@@ -43,7 +45,8 @@ async def upload_documents(
 
     response = (
         DocumentService.upload_documents(
-            files
+            files,
+            rag_type
         )
     )
 
