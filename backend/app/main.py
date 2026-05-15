@@ -48,12 +48,6 @@ def create_app() -> FastAPI:
     prefix=settings.API_PREFIX
     )
     
-    # Load demo documents on startup
-    try:
-        DocumentService.load_demo_documents()
-    except Exception as e:
-        print(f"Warning: Could not load demo documents: {e}")
-    
     log_startup()
 
     return app

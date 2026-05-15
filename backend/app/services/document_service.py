@@ -19,6 +19,30 @@ class DocumentService:
     uploaded_custom_files = []
 
     @staticmethod
+    def _load_demo_rag(rag_type: str):
+        """Load a demo RAG on demand (lazy loading)."""
+        demo_dir = "temp/uploads"
+        
+        demo_filenames = {
+            "financial": "Ragify Financial Rag Sample Document.pdf",
+            "legal": "Ragify Indian Legal Rag Sample Document.pdf"
+        }
+        
+        if rag_type not in demo_filenames:
+            return
+        
+        filename = demo_filenames[rag_type]
+        file_path = os.path.join(demo_dir, filename)
+        
+        if os.path.exists(file_path):
+            documents = load_document(file_path)
+            if documents:
+                chunks = split_documents(documents)
+                vector_store = create_vector_store(chunks, collection_name=f"ragify_{rag_type}")
+                DocumentService.vector_stores[rag_type] = vector_store
+                print(f"{rag_type.capitalize()} RAG loaded on demand")
+
+    @staticmethod
     def upload_documents(
     files,
     rag_type="custom"
@@ -44,30 +68,6 @@ class DocumentService:
             "total_chunks": len(chunks),
             "message": "Documents processed successfully"
         }
-    
-    @staticmethod
-    def load_demo_documents():
-        demo_dir = "temp/uploads"
-        
-        demo_configs = [
-            {
-                "rag_type": "financial",
-                "filename": "Ragify Financial Rag Sample Document.pdf"
-            },
-            {
-                "rag_type": "legal",
-                "filename": "Ragify Indian Legal Rag Sample Document.pdf"
-            }
-        ]
-        
-        for config in demo_configs:
-            file_path = os.path.join(demo_dir, config["filename"])
-            if os.path.exists(file_path):
-                documents = load_document(file_path)
-                if documents:
-                    chunks = split_documents(documents)
-                    vector_store = create_vector_store(chunks, collection_name=f"ragify_{config['rag_type']}")
-                    DocumentService.vector_stores[config["rag_type"]] = vector_store
     
     @staticmethod
     def clear_custom_documents():

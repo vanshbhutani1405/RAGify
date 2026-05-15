@@ -63,6 +63,10 @@ class QueryService:
     session_id: str,
     rag_type: str
     ):
+        # Lazy load demo RAGs if not already loaded
+        if rag_type in ["financial", "legal"] and rag_type not in DocumentService.vector_stores:
+            DocumentService._load_demo_rag(rag_type)
+        
         vector_store = DocumentService.vector_stores.get(
                     rag_type
                 )
