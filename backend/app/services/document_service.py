@@ -43,7 +43,7 @@ class DocumentService:
 
         chunks = split_documents(all_documents)
 
-        vector_store = create_vector_store(chunks)
+        vector_store = create_vector_store(chunks, collection_name=f"ragify_{rag_type}")
 
         DocumentService.vector_stores[rag_type] = vector_store
 
@@ -75,7 +75,7 @@ class DocumentService:
                 documents = load_pdf(file_path)
                 if documents:
                     chunks = split_documents(documents)
-                    vector_store = create_vector_store(chunks)
+                    vector_store = create_vector_store(chunks, collection_name=f"ragify_{config['rag_type']}")
                     DocumentService.vector_stores[config["rag_type"]] = vector_store
                     print(f"Loaded {config['rag_type']} RAG: {len(documents)} pages, {len(chunks)} chunks")
     
