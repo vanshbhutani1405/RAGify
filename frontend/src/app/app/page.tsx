@@ -21,14 +21,10 @@ export default function AppPage() {
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
 
   const handleUploadComplete = async (files: File[]) => {
-    console.log("=== UPLOAD SUCCESS ===");
-    console.log("Files uploaded:", files.map(f => f.name));
-    console.log("Setting currentRagType to: custom");
     setUploadedFiles(files);
     setCurrentRagType("custom");
     setIsProcessing(false);
     setShowChatOnMobile(true);
-    console.log("State updated successfully!");
   };
 
   const handleDemoSelect = async (demoType: "financial" | "legal") => {
@@ -51,13 +47,9 @@ export default function AppPage() {
   };
 
   const handleClear = async () => {
-    console.log("=== CLEAR BUTTON CLICKED ===");
-    console.log("Current ragType before clear:", currentRagType);
     if (currentRagType === "custom") {
       try {
-        console.log("Calling clearCustomDocuments API...");
         await clearCustomDocuments();
-        console.log("clearCustomDocuments API succeeded!");
       } catch (e) {
         console.error("Failed to clear custom documents:", e);
       }
@@ -65,7 +57,6 @@ export default function AppPage() {
     setUploadedFiles([]);
     setCurrentRagType("custom");
     setShowChatOnMobile(false);
-    console.log("Frontend state cleared!");
   };
 
   const hasDocuments = (uploadedFiles.length > 0 || currentRagType !== "custom") && !isProcessing;

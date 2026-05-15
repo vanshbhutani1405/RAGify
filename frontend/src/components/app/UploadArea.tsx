@@ -59,25 +59,27 @@ export const UploadArea = ({ onUploadComplete, isProcessing, setIsProcessing, on
     e.preventDefault();
     setIsDragging(false);
     setError(null);
+    const supportedExtensions = [".pdf", ".docx", ".txt"];
     const files = Array.from(e.dataTransfer.files).filter(
-      (file) => file.type === "application/pdf"
+      (file) => supportedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
     );
     if (files.length > 0) {
       setSelectedFiles((prev) => [...prev, ...files]);
     } else {
-      setError("Please upload PDF files only");
+      setError("Supported formats: PDF, DOCX, TXT");
     }
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
+    const supportedExtensions = [".pdf", ".docx", ".txt"];
     const files = Array.from(e.target.files || []).filter(
-      (file) => file.type === "application/pdf"
+      (file) => supportedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
     );
     if (files.length > 0) {
       setSelectedFiles((prev) => [...prev, ...files]);
     } else {
-      setError("Please upload PDF files only");
+      setError("Supported formats: PDF, DOCX, TXT");
     }
   };
 
@@ -186,15 +188,21 @@ export const UploadArea = ({ onUploadComplete, isProcessing, setIsProcessing, on
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="application/pdf"
+                    accept=".pdf,.docx,.txt"
                     multiple
                     onChange={handleFileSelect}
                     className="hidden"
                   />
                   <Upload className="w-9 h-9 text-muted-foreground mx-auto mb-2" />
-                  <h4 className="text-base font-semibold mb-0.5">Drag & Drop PDFs</h4>
+                  <h4 className="text-base font-semibold mb-0.5">Drag & Drop Documents</h4>
                   <p className="text-xs text-muted-foreground">
                     or click to browse
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-2">
+                    Upload text-based documents only.
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Supported: PDF, DOCX, TXT
                   </p>
                 </div>
 

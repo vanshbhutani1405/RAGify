@@ -34,13 +34,12 @@ async def upload_documents(
             detail="No files uploaded."
         )
 
+    supported_extensions = (".pdf", ".docx", ".txt")
     for file in files:
-
-        if not file.filename.endswith(".pdf"):
-
+        if not file.filename.lower().endswith(supported_extensions):
             raise HTTPException(
                 status_code=400,
-                detail="Only PDF files are allowed."
+                detail="Supported formats: PDF, DOCX, TXT"
             )
 
     response = (
