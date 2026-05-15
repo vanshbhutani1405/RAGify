@@ -58,7 +58,7 @@ export default function AppPage() {
   const displayNames = currentRagType !== "custom" ? demoFileNames[currentRagType] : uploadedFiles.map(f => f.name);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex min-h-[100dvh] h-[100dvh] overflow-hidden">
       <Sidebar onNewChat={handleNewChat} activeChat={activeChat} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="border-b border-border p-4 glass">
