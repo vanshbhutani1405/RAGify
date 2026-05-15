@@ -63,18 +63,18 @@ class QueryService:
     session_id: str,
     rag_type: str
     ):
-
+        print("=== STREAM ANSWER ===")
+        print("Query rag_type:", rag_type)
+        print("DocumentService.vector_stores.keys():", list(DocumentService.vector_stores.keys()))
+        print("Session ID will be:", f"{rag_type}_{session_id}")
+        
+        # Check for vector store BEFORE entering async generator loop
         vector_store = DocumentService.vector_stores.get(
                     rag_type
                 )
 
         if vector_store is None:
-
-            raise HTTPException(
-            status_code=400,
-            detail="No documents uploaded yet."
-             )
-
+            yield "Error: No documents uploaded yet."
             return
 
         retriever = create_retriever(

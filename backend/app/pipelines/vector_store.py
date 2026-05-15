@@ -1,5 +1,9 @@
 from langchain_chroma import Chroma 
 
+# Disable ChromaDB telemetry to save memory and network
+import os
+os.environ["CHROMA_TELEMETRY_ENABLED"] = "false"
+
 from app.pipelines.embeddings import (
     get_embedding_model
 )
@@ -10,7 +14,6 @@ def create_vector_store(chunks, collection_name="ragify_custom"):
     """
     embeddings = get_embedding_model()
     
-    # Use in-memory Chroma to avoid cross-contamination
     vector_store = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
@@ -18,3 +21,19 @@ def create_vector_store(chunks, collection_name="ragify_custom"):
     )
 
     return vector_store
+
+def delete_vector_store_collection(collection_name="ragify_custom"):
+    """
+    Delete a Chroma collection to fully clean up old embeddings.
+    """
+    embeddings = get_embedding_model()
+    try:
+        # Create a temporary Chroma instance just to get the client and delete the collection
+        temp_vector_store = Chroma(
+            embedding_function=embeddings,
+            collection_name=collection_name
+        )
+        temp_vector_store.delete_collection()
+        print(f"=== DELETED CHROMA COLLECTION: {collection_name} ===")
+    except Exception as e:
+        print(f"Warning: Could not delete Chroma collection {collection_name}: {e}")

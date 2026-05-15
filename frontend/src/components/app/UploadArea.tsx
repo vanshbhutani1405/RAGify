@@ -99,7 +99,7 @@ export const UploadArea = ({ onUploadComplete, isProcessing, setIsProcessing, on
         setCurrentStep(i + 1);
       }
 
-      await uploadDocuments(selectedFiles);
+      await uploadDocuments(selectedFiles, "custom");
       
       onUploadComplete(selectedFiles);
       setSelectedFiles([]);
