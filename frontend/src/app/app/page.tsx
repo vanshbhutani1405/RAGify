@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sidebar } from "@/components/app/Sidebar";
 import { UploadArea } from "@/components/app/UploadArea";
@@ -61,6 +61,13 @@ export default function AppPage() {
 
   const hasDocuments = (uploadedFiles.length > 0 || currentRagType !== "custom") && !isProcessing;
   const displayNames = currentRagType !== "custom" ? demoFileNames[currentRagType] : uploadedFiles.map(f => f.name);
+  
+  // If there are documents, ensure chat is shown on mobile by default
+  useEffect(() => {
+    if (hasDocuments && !showChatOnMobile) {
+      setShowChatOnMobile(true);
+    }
+  }, [hasDocuments, showChatOnMobile]);
 
   return (
     <div className="flex min-h-[100dvh] h-[100dvh] overflow-hidden">
@@ -114,7 +121,7 @@ export default function AppPage() {
               onDemoSelect={handleDemoSelect}
             />
           </div>
-          <div className={`flex-1 overflow-hidden ${hasDocuments && !showChatOnMobile ? "hidden md:flex" : "flex"}`}>
+          <div className={`flex-1 overflow-hidden flex flex-col ${hasDocuments && !showChatOnMobile ? "hidden md:flex" : "flex"}`}>
             <ChatInterface 
               hasDocuments={hasDocuments} 
               ragType={currentRagType}
