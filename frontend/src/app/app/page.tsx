@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Sidebar } from "@/components/app/Sidebar";
 import { UploadArea } from "@/components/app/UploadArea";
 import { ChatInterface } from "@/components/app/ChatInterface";
-import { FileText, ArrowLeft } from "lucide-react";
+import { FileText, ArrowLeft, MessageSquare } from "lucide-react";
 import { clearCustomDocuments } from "@/lib/api";
 
 const demoFileNames: Record<string, string[]> = {
@@ -18,11 +18,13 @@ export default function AppPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeChat, setActiveChat] = useState<string | null>(null);
   const [currentRagType, setCurrentRagType] = useState<string>("custom");
+  const [showChatOnMobile, setShowChatOnMobile] = useState(false);
 
   const handleUploadComplete = async (files: File[]) => {
     setUploadedFiles(files);
     setCurrentRagType("custom");
     setIsProcessing(false);
+    setShowChatOnMobile(true);
   };
 
   const handleDemoSelect = async (demoType: "financial" | "legal") => {
@@ -36,10 +38,12 @@ export default function AppPage() {
     );
     setUploadedFiles(dummyFiles);
     setIsProcessing(false);
+    setShowChatOnMobile(true);
   };
 
   const handleNewChat = () => {
     setActiveChat(null);
+    setShowChatOnMobile(false);
   };
 
   const handleClear = async () => {
@@ -52,6 +56,7 @@ export default function AppPage() {
     }
     setUploadedFiles([]);
     setCurrentRagType("custom");
+    setShowChatOnMobile(false);
   };
 
   const hasDocuments = (uploadedFiles.length > 0 || currentRagType !== "custom") && !isProcessing;
@@ -59,7 +64,9 @@ export default function AppPage() {
 
   return (
     <div className="flex min-h-[100dvh] h-[100dvh] overflow-hidden">
-      <Sidebar onNewChat={handleNewChat} activeChat={activeChat} />
+      <div className="hidden md:block">
+        <Sidebar onNewChat={handleNewChat} activeChat={activeChat} />
+      </div>
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="border-b border-border p-4 glass">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -87,10 +94,19 @@ export default function AppPage() {
                 </button>
               </div>
             )}
+            {hasDocuments && (
+              <button
+                onClick={() => setShowChatOnMobile(!showChatOnMobile)}
+                className="md:hidden flex items-center space-x-2 bg-primary/10 text-primary px-3 py-2 rounded-lg"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span className="text-sm font-medium">{showChatOnMobile ? "Upload" : "Chat"}</span>
+              </button>
+            )}
           </div>
         </div>
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          <div className="w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-border overflow-hidden">
+          <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-border overflow-hidden ${hasDocuments && showChatOnMobile ? "hidden md:flex" : "flex"}`}>
             <UploadArea 
               onUploadComplete={handleUploadComplete} 
               isProcessing={isProcessing}
@@ -98,7 +114,7 @@ export default function AppPage() {
               onDemoSelect={handleDemoSelect}
             />
           </div>
-          <div className="flex-1 overflow-hidden">
+          <div className={`flex-1 overflow-hidden ${hasDocuments && !showChatOnMobile ? "hidden md:flex" : "flex"}`}>
             <ChatInterface 
               hasDocuments={hasDocuments} 
               ragType={currentRagType}
