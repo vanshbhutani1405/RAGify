@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, FileText, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { Upload, X, FileText, CheckCircle2, Loader2, AlertCircle, TrendingUp, Scale } from "lucide-react";
 import { useState, useCallback, useRef } from "react";
 import { uploadDocuments } from "@/lib/api";
 
@@ -9,18 +9,36 @@ interface UploadAreaProps {
   onUploadComplete: (files: File[]) => void;
   isProcessing: boolean;
   setIsProcessing: (val: boolean) => void;
+  onDemoSelect?: (demoType: "financial" | "legal") => void;
 }
 
 const processingSteps = [
-  "Extracting document text...",
-  "Splitting content into chunks...",
+  "Extracting text...",
+  "Splitting chunks...",
   "Creating embeddings...",
-  "Building vector database...",
-  "Optimizing semantic retrieval...",
-  "Preparing AI memory...",
+  "Building vector DB...",
+  "Optimizing retrieval...",
+  "Preparing AI...",
 ];
 
-export const UploadArea = ({ onUploadComplete, isProcessing, setIsProcessing }: UploadAreaProps) => {
+const demoCards = [
+  {
+    type: "financial" as const,
+    icon: TrendingUp,
+    title: "Financial RAG",
+    description: "Analyze financial reports, revenue trends, and insights.",
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    type: "legal" as const,
+    icon: Scale,
+    title: "Legal RAG",
+    description: "Chat with legal agreements, policies, and contracts.",
+    color: "from-purple-500 to-pink-500",
+  },
+];
+
+export const UploadArea = ({ onUploadComplete, isProcessing, setIsProcessing, onDemoSelect }: UploadAreaProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -93,16 +111,21 @@ export const UploadArea = ({ onUploadComplete, isProcessing, setIsProcessing }: 
   };
 
   return (
-    <div className="flex-1 flex flex-col p-6 overflow-y-auto">
-      <div className="max-w-2xl mx-auto w-full">
-        <h2 className="text-2xl font-bold mb-6">Upload Documents</h2>
-        
-        {error && (
-          <div className="mb-6 glass p-4 rounded-xl border border-destructive/50 flex items-center space-x-3">
-            <AlertCircle className="w-5 h-5 text-destructive" />
-            <p className="text-destructive">{error}</p>
-          </div>
-        )}
+    <div className="flex-1 flex flex-col p-4 overflow-hidden">
+      <div className="max-w-2xl mx-auto w-full h-full flex flex-col">
+        <div>
+          <h2 className="text-xl font-bold mb-1">Upload Documents</h2>
+          <p className="text-muted-foreground mb-4 text-xs">
+            RAGify uses RAG to transform documents into an AI knowledge system.
+          </p>
+          
+          {error && (
+            <div className="mb-3 glass p-2 rounded-lg border border-destructive/50 flex items-center space-x-2">
+              <AlertCircle className="w-3.5 h-3.5 text-destructive" />
+              <p className="text-destructive text-xs">{error}</p>
+            </div>
+          )}
+        </div>
 
         <AnimatePresence mode="wait">
           {isProcessing ? (
@@ -111,14 +134,14 @@ export const UploadArea = ({ onUploadComplete, isProcessing, setIsProcessing }: 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="glass p-12 rounded-2xl text-center"
+              className="glass p-5 rounded-xl text-center flex-1 flex flex-col justify-center"
             >
-              <Loader2 className="w-16 h-16 text-primary mx-auto mb-6 animate-spin" />
-              <h3 className="text-2xl font-bold mb-2">Processing Documents...</h3>
-              <p className="text-muted-foreground mb-8">
-                Large documents may take some time to process.
+              <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
+              <h3 className="text-lg font-bold mb-1">Processing...</h3>
+              <p className="text-muted-foreground mb-4 text-xs">
+                Large docs may take time.
               </p>
-              <div className="space-y-3">
+              <div className="space-y-1.5">
                 {processingSteps.map((step, index) => (
                   <motion.div
                     key={index}
@@ -129,11 +152,11 @@ export const UploadArea = ({ onUploadComplete, isProcessing, setIsProcessing }: 
                     className="flex items-center justify-center space-x-2"
                   >
                     {index < currentStep ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                     ) : (
-                      <div className="w-5 h-5 rounded-full border-2 border-muted animate-pulse" />
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-muted animate-pulse" />
                     )}
-                    <span className={index < currentStep ? "text-foreground" : "text-muted-foreground"}>
+                    <span className={`text-xs ${index < currentStep ? "text-foreground" : "text-muted-foreground"}`}>
                       {step}
                     </span>
                   </motion.div>
@@ -142,80 +165,111 @@ export const UploadArea = ({ onUploadComplete, isProcessing, setIsProcessing }: 
             </motion.div>
           ) : (
             <motion.div
-              key="upload"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
+              key="content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-4 flex-1 flex flex-col overflow-hidden"
             >
-              <div
-                onDragOver={onDragOver}
-                onDragLeave={onDragLeave}
-                onDrop={onDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
-                  isDragging
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50 hover:bg-white/5"
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="application/pdf"
-                  multiple
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Upload className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Drag & Drop PDFs</h3>
-                <p className="text-muted-foreground">
-                  or click to browse your files
-                </p>
-              </div>
+              <div className="flex-shrink-0">
+                <h3 className="text-base font-semibold mb-2">Upload Your Own</h3>
+                <div
+                  onDragOver={onDragOver}
+                  onDragLeave={onDragLeave}
+                  onDrop={onDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-lg p-5 text-center cursor-pointer transition-all ${
+                    isDragging
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50 hover:bg-white/5"
+                  }`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <Upload className="w-9 h-9 text-muted-foreground mx-auto mb-2" />
+                  <h4 className="text-base font-semibold mb-0.5">Drag & Drop PDFs</h4>
+                  <p className="text-xs text-muted-foreground">
+                    or click to browse
+                  </p>
+                </div>
 
-              {selectedFiles.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-semibold">Selected Files ({selectedFiles.length})</h4>
+                {selectedFiles.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <h5 className="font-semibold text-xs">Selected ({selectedFiles.length})</h5>
+                      <button
+                        onClick={() => setSelectedFiles([])}
+                        className="text-muted-foreground hover:text-foreground text-xs"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    <div className="space-y-1.5 max-h-28 overflow-y-auto">
+                      {selectedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="glass p-2 rounded-md flex items-center justify-between"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <FileText className="w-3.5 h-3.5 text-primary" />
+                            <div>
+                              <p className="font-medium text-xs truncate max-w-[160px]">{file.name}</p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeFile(index)}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                     <button
-                      onClick={() => setSelectedFiles([])}
-                      className="text-muted-foreground hover:text-foreground text-sm"
+                      onClick={handleUpload}
+                      className="w-full bg-primary text-primary-foreground px-4 py-2.5 rounded-md font-semibold text-sm hover:opacity-90 transition-opacity"
                     >
-                      Clear all
+                      Upload & Process
                     </button>
                   </div>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {selectedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="glass p-4 rounded-xl flex items-center justify-between"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <FileText className="w-5 h-5 text-primary" />
-                          <div>
-                            <p className="font-medium truncate max-w-xs">{file.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                          </div>
+                )}
+              </div>
+
+              <div className="border-t border-border pt-4 flex-1">
+                <h3 className="text-base font-semibold mb-2">Or Try Demo RAGs</h3>
+                <div className="grid grid-cols-1 gap-2.5">
+                  {demoCards.map((demo, index) => (
+                    <motion.button
+                      key={demo.type}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      onClick={() => onDemoSelect?.(demo.type)}
+                      className="glass p-3 rounded-md text-left w-full hover:bg-white/10 transition-colors"
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <div className={`p-2 rounded-md bg-gradient-to-br ${demo.color}`}>
+                          <demo.icon className="w-4.5 h-4.5 text-white" />
                         </div>
-                        <button
-                          onClick={() => removeFile(index)}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
+                        <div>
+                          <h4 className="font-semibold text-sm mb-0.5">{demo.title}</h4>
+                          <p className="text-[11px] text-muted-foreground">{demo.description}</p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                  <button
-                    onClick={handleUpload}
-                    className="w-full bg-primary text-primary-foreground px-6 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition-opacity"
-                  >
-                    Upload and Process
-                  </button>
+                    </motion.button>
+                  ))}
                 </div>
-              )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

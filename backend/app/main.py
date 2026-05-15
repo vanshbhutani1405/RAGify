@@ -6,6 +6,7 @@ from app.core.logging import setup_logging
 from app.utils.logging_utils import log_startup
 from app.api.v1.upload import router as upload_router
 from app.api.v1.query import router as query_router
+from app.services.document_service import DocumentService
 
 from fastapi.middleware.cors import (
     CORSMiddleware
@@ -41,6 +42,13 @@ def create_app() -> FastAPI:
     query_router,
     prefix=settings.API_PREFIX
     )
+    
+    # Load demo documents on startup
+    try:
+        DocumentService.load_demo_documents()
+    except Exception as e:
+        print(f"Warning: Could not load demo documents: {e}")
+    
     log_startup()
 
     return app
